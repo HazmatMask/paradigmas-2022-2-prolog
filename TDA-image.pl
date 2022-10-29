@@ -13,16 +13,15 @@ isRgbList([H|T]):-isPixrgb(H),isRgbList(T).
 isHexList([]).
 isHexList([H|T]):-isPixhex(H),isHexList(T).
 
-imageIsBitmap([X,Y,Content]):-integer(X),integer(Y),X > -1, Y > -1, isBitList(Content).
-imageIsPixmap([X,Y,Content]):-integer(X),integer(Y),X > -1, Y > -1, isRgbList(Content).
-imageIsHexmap([X,Y,Content]):-integer(X),integer(Y),X > -1, Y > -1, isHexList(Content).
-
-%IMAGE IS COMPRESSED: PENDIENTE
-%
+imageIsBitmap([X,Y,Content|_]):-integer(X),integer(Y),X > -1, Y > -1, isBitList(Content).
+imageIsPixmap([X,Y,Content|_]):-integer(X),integer(Y),X > -1, Y > -1, isRgbList(Content).
+imageIsHexmap([X,Y,Content|_]):-integer(X),integer(Y),X > -1, Y > -1, isHexList(Content).
+imageIsCompressed([_,_,_|[_|_]]).
 
 select_pix_x([X|_],X).
 select_pix_y([_,Y|_],Y).
-select_pix_content([_,_,Content],Content).
+select_pix_content([_,_,Content|_],Content).
+select_pix_end([_,_,_|End],End).
 
 mod_pix_x([_|T],New_X,[New_X|T]).
 mod_pix_y([X,_|T],New_Y,[X,New_Y|T]).
@@ -64,66 +63,44 @@ recPixListHexToRGB([[X,Y,HEX_IN,D]|T_HEX],[[X,Y,R,G,B,D]|T_RGB]):- hexStringTo(H
 imageHextoRGB([X,Y,Content_in],[X,Y,Content_out]):- recPixListHexToRGB(Content_in,Content_out).
 
 %IMGTOHISTOGRAM
+
 %BIN COUNTER
 
-recCountBinFromList([],_,Sum_out,Sum_out).
-recCountBinFromList([H|T],Color_in,Sum_in,Sum_out):- select_pixbit_value(H,Color_out), Color_in == Color_out, Sum_aux is Sum_in+1, recCountBinFromList(T,Color_in,Sum_aux,Sum_out).
-recCountBinFromList([_|T],Color_in,Sum_in,Sum_out):- recCountBinFromList(T,Color_in,Sum_in,Sum_out).
+is_BIN_in_List([[BIN,_]|[]],BIN).
+is_BIN_in_List([[BIN,_]|[_|_]],BIN).
+is_BIN_in_List([_|T],BIN):- is_BIN_in_List(T,BIN).
 
-countBinFromList(List,Color,[Color,Sum_out]):-recCountBinFromList(List,Color,0,Sum_out).
+add_BIN_value(List_in,BIN,[[BIN,1]|List_in]).
 
-recCountAllBinFromList(_,It,It,List_out,List_out).
-recCountAllBinFromList(List_in,Current_It,Finish_It,List_aux,List_out):- countBinFromList(List_in,Current_It,Sum_out), List_aux2 = [Sum_out|List_aux], It_up is Current_It+1, recCountAllBinFromList(List_in,It_up,Finish_It,List_aux2,List_out).
+up_BIN_value(BIN,[[BIN,A]|T],[[BIN,A_up]|T]):-A_up is A+1.
+up_BIN_value(BIN,[H|T1],[H|T2]):- up_BIN_value(BIN,T1,T2).
 
-countAllBinFromList(List_in,List_out):- recCountAllBinFromList(List_in,0,2,[],List_out).
+run_BIN_List([],List_out,List_out).
+run_BIN_List([PixBIT|T],List_aux,List_out):- select_pixbit_value(PixBIT,BIN), is_BIN_in_List(List_aux,BIN), up_BIN_value(BIN,List_aux,List_aux2),run_BIN_List(T,List_aux2,List_out).
+run_BIN_List([PixBIT|T],List_aux,List_out):- select_pixbit_value(PixBIT,BIN), add_BIN_value(List_aux,BIN,List_aux2), run_BIN_List(T,List_aux2,List_out).
 
-%RED COUNTER
+%RGB COUNTER
 
-recCountRedFromList([],_,Sum_out,Sum_out).
-recCountRedFromList([H|T],Color_in,Sum_in,Sum_out):- select_pixrgb_red(H,Color_out), Color_in == Color_out, Sum_aux is Sum_in+1, recCountRedFromList(T,Color_in,Sum_aux,Sum_out).
-recCountRedFromList([_|T],Color_in,Sum_in,Sum_out):- recCountRedFromList(T,Color_in,Sum_in,Sum_out).
+is_RGB_in_List([[R,G,B,_]|[]],R,G,B).
+is_RGB_in_List([[R,G,B,_]|[_|_]],R,G,B).
+is_RGB_in_List([_|T],R,G,B):- is_RGB_in_List(T,R,G,B).
 
-countRedFromList(List,Color,[Color,Sum_out]):-recCountRedFromList(List,Color,0,Sum_out).
+add_RGB_value(List_in,R,G,B,[[R,G,B,1]|List_in]).
 
-recCountAllRedFromList(_,It,It,List_out,List_out).
-recCountAllRedFromList(List_in,Current_It,Finish_It,List_aux,List_out):- countRedFromList(List_in,Current_It,Sum_out), List_aux2 = [Sum_out|List_aux], It_up is Current_It+1, recCountAllRedFromList(List_in,It_up,Finish_It,List_aux2,List_out).
+up_RGB_value(R,G,B,[[R,G,B,A]|T],[[R,G,B,A_up]|T]):- A_up is A+1.
+up_RGB_value(R,G,B,[H|T1],[H|T2]):- up_RGB_value(R,G,B,T1,T2).
 
-countAllRedFromList(List_in,List_out):- recCountAllRedFromList(List_in,0,256,[],List_out).
-
-%GREEN COUNTER
-
-recCountGreenFromList([],_,Sum_out,Sum_out).
-recCountGreenFromList([H|T],Color_in,Sum_in,Sum_out):- select_pixrgb_green(H,Color_out), Color_in == Color_out, Sum_aux is Sum_in+1, recCountGreenFromList(T,Color_in,Sum_aux,Sum_out).
-recCountGreenFromList([_|T],Color_in,Sum_in,Sum_out):- recCountGreenFromList(T,Color_in,Sum_in,Sum_out).
-
-countGreenFromList(List,Color,[Color,Sum_out]):-recCountGreenFromList(List,Color,0,Sum_out).
-
-recCountAllGreenFromList(_,It,It,List_out,List_out).
-recCountAllGreenFromList(List_in,Current_It,Finish_It,List_aux,List_out):- countGreenFromList(List_in,Current_It,Sum_out), List_aux2 = [Sum_out|List_aux], It_up is Current_It+1, recCountAllGreenFromList(List_in,It_up,Finish_It,List_aux2,List_out).
-
-countAllGreenFromList(List_in,List_out):- recCountAllGreenFromList(List_in,0,256,[],List_out).
-
-%BLUE COUNTER
-
-recCountBlueFromList([],_,Sum_out,Sum_out).
-recCountBlueFromList([H|T],Color_in,Sum_in,Sum_out):- select_pixrgb_blue(H,Color_out), Color_in == Color_out, Sum_aux is Sum_in+1, recCountBlueFromList(T,Color_in,Sum_aux,Sum_out).
-recCountBlueFromList([_|T],Color_in,Sum_in,Sum_out):- recCountBlueFromList(T,Color_in,Sum_in,Sum_out).
-
-countBlueFromList(List,Color,[Color,Sum_out]):-recCountBlueFromList(List,Color,0,Sum_out).
-
-recCountAllBlueFromList(_,It,It,List_out,List_out).
-recCountAllBlueFromList(List_in,Current_It,Finish_It,List_aux,List_out):- countBlueFromList(List_in,Current_It,Sum_out), List_aux2 = [Sum_out|List_aux], It_up is Current_It+1, recCountAllBlueFromList(List_in,It_up,Finish_It,List_aux2,List_out).
-
-countAllBlueFromList(List_in,List_out):- recCountAllBlueFromList(List_in,0,256,[],List_out).
+run_RGB_List([],List_out,List_out).
+run_RGB_List([PixRGB|T],List_aux,List_out):- select_pixrgb_red(PixRGB,R), select_pixrgb_green(PixRGB,G), select_pixrgb_blue(PixRGB,B), is_RGB_in_List(List_aux,R,G,B), up_RGB_value(R,G,B,List_aux,List_aux2),run_RGB_List(T,List_aux2,List_out).
+run_RGB_List([PixRGB|T],List_aux,List_out):- select_pixrgb_red(PixRGB,R), select_pixrgb_green(PixRGB,G), select_pixrgb_blue(PixRGB,B), add_RGB_value(List_aux,R,G,B,List_aux2), run_RGB_List(T,List_aux2,List_out).
 
 %IMAGETOHISTOGRAM
 %
-imageToHistogram(Image,Histogram):- imageIsBitmap(Image), select_pix_content(Image,Bit_list), countAllBinFromList(Bit_list,Histogram).
+imageToHistogram(Image,List_out):- imageIsBitmap(Image), select_pix_content(Image,Bit_list), run_BIN_List(Bit_list,[],List_out).
 
-imageToHistogram(Image,[Red,Green,Blue]):- imageIsPixmap(Image), select_pix_content(Image,Pix_list), countAllRedFromList(Pix_list,Red), countAllGreenFromList(Pix_list,Green), countAllBlueFromList(Pix_list,Blue).
+imageToHistogram(Image,List_out):- imageIsPixmap(Image), select_pix_content(Image,Pix_list), run_RGB_List(Pix_list,[],List_out).
 
-imageToHistogram(Image_in,[Red,Green,Blue]):- imageIsHexmap(Image_in), imageHextoRGB(Image_in,Image_out), select_pix_content(Image_out,Pix_list), countAllRedFromList(Pix_list,Red), countAllGreenFromList(Pix_list,Green), countAllBlueFromList(Pix_list,Blue).
-
+imageToHistogram(Image_in,List_out):- imageIsHexmap(Image_in), imageHextoRGB(Image_in,Image_out), select_pix_content(Image_out,Pix_list), run_RGB_List(Pix_list,[],List_out).
 
 %ROTATE90
 
@@ -133,6 +110,58 @@ imageRotate90Rec(Y,[H|T],[H2|T2]):- select_pix_x(H,H_X), select_pix_y(H,H_Y), mo
 imageRotate90([X,Y,Content],[Y,X,Content_2]):- imageRotate90Rec(Y,Content,Content_2).
 
 %COMPRESS: PENDIENTE
+
+
+createCompressedImage(Image_in,Compressed_List,Clear_List,[X_out,Y_out,Clear_List|[Compressed_List|Old_compress]]):- select_pix_x(Image_in,X_out), select_pix_y(Image_in,Y_out), select_pix_end(Image_in,Old_compress).
+
+
+%COMPRESS BIN
+
+recMostFrequentBINHisto([[BIN,A]|[]],[_,A2],[BIN,A]):- A > A2.
+recMostFrequentBINHisto([[_,A]|[]],[BIN,A2],[BIN,A2]):- A =< A2.
+recMostFrequentBINHisto([[BIN,A]|T],[_,A2],Color_out):- A > A2, recMostFrequentRGBHisto(T,[BIN,A],Color_out).
+recMostFrequentBINHisto([[_,A]|T],[BIN,A2],Color_out):- A =< A2, recMostFrequentRGBHisto(T,[BIN,A2],Color_out).
+
+mostFrequentBINHisto(List_in,Color_out):- recMostFrequentBINHisto(List_in,[_,0],Color_out).
+
+recCompressBINList_newList([],_,List_out,List_out).
+recCompressBINList_newList([H|T],[BIN,_],List_aux,List_out):- select_pixbit_value(H,BIN), select_pixbit_x(H,X), select_pixbit_y(H,Y), select_pixbit_depth(H,D), recCompressRGBList_newList(T,[BIN,_],[[X,Y,D]|List_aux],List_out).
+recCompressBINList_newList([_|T],Color_in,List_aux,List_out):- recCompressBINList_newList(T,Color_in,List_aux,List_out).
+
+compressBINList_newList(List_in,Color_in,List_out):- recCompressBINList_newList(List_in,Color_in,[],List_out).
+
+recCompressBINList_clear([],[],_).
+recCompressBINList_clear([H|T],T2,[BIN,_]):-  select_pixrgb_red(H,BIN), recCompressRGBList_clear(T,T2,[BIN,_]).
+recCompressBINList_clear([H|T],[H|T2],Color_in):- recCompressBINList_clear(T,T2,Color_in).
+
+compressBINList_clear(List_in,Color_in,List_out):- recCompressBINList_clear(List_in,List_out,Color_in).
+
+compressBitmap(Image_in,Compressed_Image_out):- imageToHistogram(Image_in,Histo_out), mostFrequentBINHisto(Histo_out,Color_out), select_pix_content(Image_in,Content_out), compressBINList_newList(Content_out,Color_out,New_content), compressBINList_clear(Content_out,Color_out,Clear_content), createCompressedImage(Image_in,[Color_out|New_content],Clear_content,Compressed_Image_out).
+
+%COMPRESS RGB
+
+recMostFrequentRGBHisto([[R,G,B,A]|[]],[_,_,_,A2],[R,G,B,A]):- A > A2.
+recMostFrequentRGBHisto([[_,_,_,A]|[]],[R,G,B,A2],[R,G,B,A2]):- A =< A2.
+recMostFrequentRGBHisto([[R,G,B,A]|T],[_,_,_,A2],Color_out):- A > A2, recMostFrequentRGBHisto(T,[R,G,B,A],Color_out).
+recMostFrequentRGBHisto([[_,_,_,A]|T],[R,G,B,A2],Color_out):- A =< A2, recMostFrequentRGBHisto(T,[R,G,B,A2],Color_out).
+
+mostFrequentRGBHisto(List_in,Color_out):- recMostFrequentRGBHisto(List_in,[_,_,_,0],Color_out).
+
+recCompressRGBList_newList([],_,List_out,List_out).
+recCompressRGBList_newList([H|T],[R,G,B,_],List_aux,List_out):- select_pixrgb_red(H,R), select_pixrgb_green(H,G), select_pixrgb_blue(H,B), select_pixrgb_x(H,X), select_pixrgb_y(H,Y), select_pixrgb_depth(H,D), recCompressRGBList_newList(T,[R,G,B,_],[[X,Y,D]|List_aux],List_out).
+recCompressRGBList_newList([_|T],Color_in,List_aux,List_out):- recCompressRGBList_newList(T,Color_in,List_aux,List_out).
+
+compressRGBList_newList(List_in,Color_in,List_out):- recCompressRGBList_newList(List_in,Color_in,[],List_out).
+
+recCompressRGBList_clear([],[],_).
+recCompressRGBList_clear([H|T],T2,[R,G,B,_]):-  select_pixrgb_red(H,R), select_pixrgb_green(H,G), select_pixrgb_blue(H,B), recCompressRGBList_clear(T,T2,[R,G,B,_]).
+recCompressRGBList_clear([H|T],[H|T2],Color_in):- recCompressRGBList_clear(T,T2,Color_in).
+
+compressRGBList_clear(List_in,Color_in,List_out):- recCompressRGBList_clear(List_in,List_out,Color_in).
+
+compressPixmap(Image_in,Compressed_Image_out):- imageToHistogram(Image_in,Histo_out), mostFrequentRGBHisto(Histo_out,Color_out), select_pix_content(Image_in,Content_out), compressRGBList_newList(Content_out,Color_out,New_content), compressRGBList_clear(Content_out,Color_out,Clear_content), createCompressedImage(Image_in,[Color_out|New_content],Clear_content,Compressed_Image_out).
+
+compress(Image_in,Compressed_Image_out):- imageIsPixmap(Image_in), compressPixmap(Image_in,Compressed_Image_out).
 
 %CHANGEPIXEL
 
