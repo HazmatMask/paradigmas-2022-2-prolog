@@ -6,6 +6,8 @@ pixbit(X,Y,B,D,[X,Y,B,D]).
 isPixbit([X,Y,0,D|[]]):-integer(X),integer(Y),X > -1,Y > -1,integer(D).
 isPixbit([X,Y,1,D|[]]):-integer(X),integer(Y),X > -1,Y > -1,integer(D).
 
+select_pixbit_x([X|PB],X):- isPixbit([X|PB]).
+select_pixbit_y([X,Y|PB],Y):- isPixbit([X,Y|PB]).
 select_pixbit_value([X,Y,B|PB],B):- isPixbit([X,Y,B|PB]).
 select_pixbit_depth([X,Y,B,D|PB],D):- isPixbit([X,Y,B,D|PB]).
 
