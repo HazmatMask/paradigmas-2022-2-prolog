@@ -586,26 +586,16 @@ compressPixmap(Image_in,Compressed_Image_out):- imageToHistogram(Image_in,Histo_
 
 %COMPRESS HEX
 
-%RECMOSTFREQUENTHEXHISTO
-% DETERMINA EL PAR CUYO SEGUNDO ELEMENTO SEA EL MAYOR ENTERO DE UNA
-% LISTA. LUEGO UNIFICA EL PRIMERO DE ESTE PAR CON UNA
-% LISTA DE UN SOLO ELEMENTO.
-%
 %MOSTFREQUENTHEXHISTO
 % EVALUA UNA LISTA CON UNA LISTA CUYO SEGUNDO ELEMENTO ES 0, A TRAVES
-% DEL PREDICADO RECMOSTFREQUENTHEXHISTO.
+% DEL PREDICADO RECMOSTFREQUENTRECHISTO.
 %
 % DOMINIO: RECMOSTFREQUENTHEXHISTO: LISTA X LISTA X LISTA
 %          MOSTFREQUENTHEXHISTO: LISTA X LISTA
 % RECURSION: PILA
 
 
-recMostFrequentHEXHisto([[HEX,A]|[]],[_,A2],[HEX]):- A > A2.
-recMostFrequentHEXHisto([[_,A]|[]],[HEX,A2],[HEX]):- A =< A2.
-recMostFrequentHEXHisto([[HEX,A]|T],[_,A2],Color_out):- A > A2, recMostFrequentRGBHisto(T,[HEX,A],Color_out).
-recMostFrequentHEXHisto([[_,A]|T],[HEX,A2],Color_out):- A =< A2, recMostFrequentRGBHisto(T,[HEX,A2],Color_out).
-
-mostFrequentHEXHisto(List_in,Color_out):- recMostFrequentHEXHisto(List_in,[_,0],Color_out).
+mostFrequentHEXHisto(List_in,Color_out):- recMostFrequentRGBHisto(List_in,[_,_,_,0],Color_out).
 
 %RECCOMPRESSHEXLIST_NEWLIST
 % UNIFICA UNA LISTA Y UNA LISTA DE UN ELEMENTO, CON UNA LISTA
@@ -620,7 +610,7 @@ mostFrequentHEXHisto(List_in,Color_out):- recMostFrequentHEXHisto(List_in,[_,0],
 % RECURSION: COLA
 
 recCompressHEXList_newList([],_,List_out,List_out).
-recCompressHEXList_newList([H|T],[HEX],List_aux,List_out):- select_pixhex_hex(H,HEX),select_pixhex_x(H,X),select_pixhex_y(H,Y), select_pixhex_depth(H,D), recCompressRGBList_newList(T,[HEX],[[X,Y,D]|List_aux],List_out).
+recCompressHEXList_newList([H|T],[HEX],List_aux,List_out):- select_pixhex_hex(H,HEX),select_pixhex_x(H,X),select_pixhex_y(H,Y), select_pixhex_depth(H,D), recCompressHEXList_newList(T,[HEX],[[X,Y,D]|List_aux],List_out).
 recCompressHEXList_newList([_|T],Color_in,List_aux,List_out):- recCompressHEXList_newList(T,Color_in,List_aux,List_out).
 
 compressHEXList_newList(List_in,Color_in,List_out):- recCompressHEXList_newList(List_in,Color_in,[],List_out).
@@ -638,7 +628,7 @@ compressHEXList_newList(List_in,Color_in,List_out):- recCompressHEXList_newList(
 % RECURSION: PILA
 
 recCompressHEXList_clear([],[],_).
-recCompressHEXList_clear([H|T],T2,[HEX]):-  select_pixhex_hex(H,HEX),recCompressRGBList_clear(T,T2,[HEX]).
+recCompressHEXList_clear([H|T],T2,[HEX]):-  select_pixhex_hex(H,HEX),recCompressHEXList_clear(T,T2,[HEX]).
 recCompressHEXList_clear([H|T],[H|T2],Color_in):- recCompressHEXList_clear(T,T2,Color_in).
 
 compressHEXList_clear(List_in,Color_in,List_out):- recCompressHEXList_clear(List_in,List_out,Color_in).
@@ -653,7 +643,7 @@ compressHEXList_clear(List_in,Color_in,List_out):- recCompressHEXList_clear(List
 %
 % DOMINIO: TDA:IMAGE X TDA:IMAGE(COMPRESSED)
 
-compressHexmap(Image_in,Compressed_Image_out):- imageToHistogram(Image_in,Histo_out),mostFrequentHEXHisto(Histo_out,Color_out), select_pix_content(Image_in,Content_out), compressHEXList_newList(Content_out,Color_out,New_content), compressHEXList_clear(Content_out,Color_out,Clear_content), createCompressedImage(Image_in,[Color_out|New_content],Clear_content,Compressed_Image_out).
+compressHexmap(Image_in,Compressed_Image_out):- imageToHistogram(Image_in,Histo_out),mostFrequentHEXHisto(Histo_out,[R,G,B]), rgbStringToHex(R,G,B,HEX_color), select_pix_content(Image_in,Content_out), compressHEXList_newList(Content_out,[HEX_color],New_content), compressHEXList_clear(Content_out,[HEX_color],Clear_content), createCompressedImage(Image_in,[[HEX_color]|New_content],Clear_content,Compressed_Image_out).
 
 %COMPRESS
 % DETERMINA EL TIPO DE TDA:IMAGE QUE SE LE ENTREGO, Y LUEGO APLICA EL

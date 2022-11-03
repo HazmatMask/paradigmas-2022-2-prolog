@@ -146,9 +146,9 @@ imageToString(Image_in,String_out):- imageIsHexmap(Image_in),sort_Image(Image_in
 %
 % DOMINIO: TDA:IMAGE X LISTA
 
-imageDepthLayers(Image_in,List_out):- isBitmap(Image_in),select_pix_x(Image_in,X), select_pix_y(Image_in,Y), select_pix_content(Image_in,Content),bitDepthLayers(X,Y,Content,[],List_out).
-imageDepthLayers(Image_in,List_out):- isPixmap(Image_in),select_pix_x(Image_in,X), select_pix_y(Image_in,Y), select_pix_content(Image_in,Content),rgbDepthLayers(X,Y,Content,[],List_out).
-imageDepthLayers(Image_in,List_out):- isHexmap(Image_in),select_pix_x(Image_in,X), select_pix_y(Image_in,Y), select_pix_content(Image_in,Content),hexDepthLayers(X,Y,Content,[],List_out).
+imageDepthLayers(Image_in,List_out):- imageIsBitmap(Image_in),select_pix_x(Image_in,X), select_pix_y(Image_in,Y), select_pix_content(Image_in,Content),bitDepthLayers(X,Y,Content,[],List_out).
+imageDepthLayers(Image_in,List_out):- imageIsPixmap(Image_in),select_pix_x(Image_in,X), select_pix_y(Image_in,Y), select_pix_content(Image_in,Content),rgbDepthLayers(X,Y,Content,[],List_out).
+imageDepthLayers(Image_in,List_out):- imageIsHexmap(Image_in),select_pix_x(Image_in,X), select_pix_y(Image_in,Y), select_pix_content(Image_in,Content),hexDepthLayers(X,Y,Content,[],List_out).
 
 %DECOMPRESS
 % DETERMINA EL TIPO DE TDA:IMAGE QUE SE LE ESTA ENTREGANDO, Y EVALUA CON
