@@ -52,7 +52,6 @@
              recCompressRGBList_clear/3,
              compressRGBList_clear/3,
              compressPixmap/2,
-             recMostFrequentHEXHisto/3,
              mostFrequentHEXHisto/2,
              recCompressHEXList_newList/4,
              compressHEXList_newList/3,
