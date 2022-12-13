@@ -1,6 +1,16 @@
 :- module('TDA-hexString',
-           [myLengthR/3,myLength/2,myStringLength/2,hex/1,isHexR/1,isHex/1,isRGBHex/1,hexToInteger/2,hexChToDec/2,hexStringTo/2,
-           decToHexStr/2,rgbStringToHex/4]).
+           [myLengthR/3,
+            myLength/2,
+            myStringLength/2,
+            hex/1,
+            isHexR/1,
+            isHex/1,
+            isRGBHex/1,
+            hexToInteger/2,
+            hexChToDec/2,
+            hexStringTo/2,
+            decToHexStr/2,
+            rgbStringToHex/4]).
 
 %MYLENGTH
 % DETERMINA EL LARGO DE UNA LISTA.
