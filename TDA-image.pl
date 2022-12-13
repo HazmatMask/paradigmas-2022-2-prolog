@@ -401,6 +401,46 @@ run_RGB_List([],List_out,List_out).
 run_RGB_List([PixRGB|T],List_aux,List_out):- select_pixrgb_red(PixRGB,R), select_pixrgb_green(PixRGB,G), select_pixrgb_blue(PixRGB,B), is_RGB_in_List(List_aux,R,G,B), up_RGB_value(R,G,B,List_aux,List_aux2),run_RGB_List(T,List_aux2,List_out).
 run_RGB_List([PixRGB|T],List_aux,List_out):- select_pixrgb_red(PixRGB,R), select_pixrgb_green(PixRGB,G), select_pixrgb_blue(PixRGB,B), add_RGB_value(List_aux,R,G,B,List_aux2), run_RGB_List(T,List_aux2,List_out).
 
+%HEX COUNTER
+%
+%%IS_HEX_IN_LIST
+% DETERMINA SI UN STRING SE ENCUENTRA EN UNA LISTA
+% ASOCIADA.
+% DOMINIO: LISTA X STRING
+% RECURSION: PILA
+
+is_HEX_in_List([[H,_]|[]],H).
+is_HEX_in_List([[H,_]|[_|_]],H).
+is_HEX_in_List([_|T],H):- is_HEX_in_List(T,H).
+
+%ADD_HEX_VALUE
+% UNIFICA UNA LISTA Y UN STRING, CON UNA LISTA CUYA CABEZA ES UNA
+% LISTA DE DICHO STRING Y EL ENTERO 1, Y SU COLA ES LA LISTA INICIAL.
+% DOMINIO: LISTA X TDA:PIXHEX X LISTA
+
+add_HEX_value(List_in,H,[[H,1]|List_in]).
+
+%UP_HEX_VALUE
+% AUMENTA EL VALOR ASOCIADO A UN STRING EN 1.
+% DOMINIO: STRING X LISTA X LISTA
+% RECURSION: PILA
+
+up_HEX_value(H,[[H,A]|T],[[H,A_up]|T]):- A_up is A+1.
+up_HEX_value(HEX,[H|T1],[H|T2]):- up_HEX_value(HEX,T1,T2).
+
+%RUN_HEX_LIST
+% DETERMINA SI LOS VALORES DE UN TDA:PIXHEX EXISTEN EN UNA LISTA
+% AUXILIAR. DE NO EXISTIR, LOS AGREGA JUNTO A UN CONTADOR 1. DE EXISTIR,
+% BUSCA SU UBICACION Y AUMENTA SU CONTADOR ASOCIADO EN 1.
+%
+% DOMINIO: LISTA (TDA:PIXHEX) X LISTA X LISTA
+% RECURSION: COLA
+
+run_HEX_List([],List_out,List_out).
+run_HEX_List([PixHEX|T],List_aux,List_out):- select_pixhex_hex(PixHEX,HEX), is_HEX_in_List(List_aux,HEX), up_HEX_value(HEX,List_aux,List_aux2),run_HEX_List(T,List_aux2,List_out).
+run_HEX_List([PixHEX|T],List_aux,List_out):- select_pixhex_hex(PixHEX,HEX), add_HEX_value(List_aux,HEX,List_aux2), run_HEX_List(T,List_aux2,List_out).
+
+
 %IMAGETOHISTOGRAM
 % DETERMINA EL TIPO DE UNA IMAGEN, Y LO UNIFICA CON UNA LISTA QUE
 % CORRESPONDE AL TERCER ARGUMENTO DEL PREDICADO
@@ -414,7 +454,7 @@ imageToHistogram(Image,List_out):- imageIsBitmap(Image), select_pix_content(Imag
 
 imageToHistogram(Image,List_out):- imageIsPixmap(Image), select_pix_content(Image,Pix_list), run_RGB_List(Pix_list,[],List_out).
 
-imageToHistogram(Image_in,List_out):- imageIsHexmap(Image_in), imageHextoRGB(Image_in,Image_out), select_pix_content(Image_out,Pix_list), run_RGB_List(Pix_list,[],List_out).
+imageToHistogram(Image_in,List_out):- imageIsHexmap(Image_in), select_pix_content(Image_in,Pix_list), run_HEX_List(Pix_list,[],List_out).
 
 %IMAGEROTATE90REC
 % UNIFICA LAS CABEZAS DE UN ENTERO (YSIZE) Y DOS LISTAS DE TDA:PIX, DE
@@ -585,25 +625,30 @@ compressPixmap(Image_in,Compressed_Image_out):- imageToHistogram(Image_in,Histo_
 
 %COMPRESS HEX
 
-%MOSTFREQUENTHEXHISTO
-% EVALUA UNA LISTA CON UNA LISTA CUYO SEGUNDO ELEMENTO ES 0, A TRAVES
-% DEL PREDICADO RECMOSTFREQUENTRECHISTO.
+%RECMOSTFREQUENTHEXHISTO
+% DETERMINA EL PAR CUYO SEGUNDO ELEMENTO SEA EL MAYOR ENTERO DE UNA
+% LISTA. LUEGO UNIFICA EL PRIMER ELEMENTO DE ESTE PAR CON UNA LISTA DE
+% UN SOLO ELEMENTO.
 %
-% DOMINIO: RECMOSTFREQUENTHEXHISTO: LISTA X LISTA X LISTA
+%MOSTFREQUENTHEXHISTO
+% EVALUA UNA LISTA CON UN PAR CUYO SEGUNDO ELEMENTO ES 0, A TRAVES DEL
+% PREDICADO RECMOSTFREQUENTBINHISTO.
+%
+% DOMINIO: RECMOSTFREQUENTHEXHISTO: LISTA X PAR X LISTA
 %          MOSTFREQUENTHEXHISTO: LISTA X LISTA
 % RECURSION: PILA
 
-recMostFrequentHEXHisto([[H,A]|[]],[_,_,_,A2],[H]):- A > A2.
-recMostFrequentHEXHisto([[_,A]|[]],[H,A2],[H]):- A =< A2.
-recMostFrequentHEXHisto([[H,A]|T],[_,A2],Color_out):- A > A2, recMostFrequentRGBHisto(T,[H,A],Color_out).
-recMostFrequentHEXHisto([[_,A]|T],[H,A2],Color_out):- A =< A2, recMostFrequentRGBHisto(T,[H,A2],Color_out).
+recMostFrequentHEXHisto([[HEX,A]|[]],[_,A2],[HEX]):- A > A2.
+recMostFrequentHEXHisto([[_,A]|[]],[HEX,A2],[HEX]):- A =< A2.
+recMostFrequentHEXHisto([[HEX,A]|T],[_,A2],Color_out):- A > A2, recMostFrequentBINHisto(T,[HEX,A],Color_out).
+recMostFrequentHEXHisto([[_,A]|T],[HEX,A2],Color_out):- A =< A2, recMostFrequentBINHisto(T,[HEX,A2],Color_out).
 
 mostFrequentHEXHisto(List_in,Color_out):- recMostFrequentHEXHisto(List_in,[_,0],Color_out).
 
 %RECCOMPRESSHEXLIST_NEWLIST
-% UNIFICA UNA LISTA Y UNA LISTA DE UN ELEMENTO, CON UNA LISTA
-% CUYOS ELEMENTOS SON AQUELLOS DE LA PRIMERA LISTA CUYOS VALORES NO
-% COINCIDAN CON EL VALOR INICIAL ENTREGADO.
+% UNIFICA UNA LISTA Y UNA LISTA UNITARIA CON UN STRING, CON UNA LISTA
+% CUYOS ELEMENTOS SON AQUELLOS DE LA PRIMERA LISTA CUYO VALOR NO
+% COINCIDA CON EL VALOR INICIAL ENTREGADO.
 %
 %COMPRESSHEXLIST_NEWLIST
 % EVALUA SEGUN PREDICADO RECCOMPRESSHEXLIST_NEWLIST TRES LISTAS.
@@ -613,40 +658,40 @@ mostFrequentHEXHisto(List_in,Color_out):- recMostFrequentHEXHisto(List_in,[_,0],
 % RECURSION: COLA
 
 recCompressHEXList_newList([],_,List_out,List_out).
-recCompressHEXList_newList([H|T],[HEX],List_aux,List_out):- select_pixhex_hex(H,HEX),select_pixhex_x(H,X),select_pixhex_y(H,Y), select_pixhex_depth(H,D), recCompressHEXList_newList(T,[HEX],[[X,Y,D]|List_aux],List_out).
+recCompressHEXList_newList([H|T],[HEX],List_aux,List_out):- select_pixhex_hex(H,HEX), select_pixhex_x(H,X), select_pixhex_y(H,Y), select_pixhex_depth(H,D), recCompressHEXList_newList(T,[HEX],[[X,Y,D]|List_aux],List_out).
 recCompressHEXList_newList([_|T],Color_in,List_aux,List_out):- recCompressHEXList_newList(T,Color_in,List_aux,List_out).
 
 compressHEXList_newList(List_in,Color_in,List_out):- recCompressHEXList_newList(List_in,Color_in,[],List_out).
 
 %RECCOMPRESSHEXLIST_CLEAR
-% UNIFICA UNA LISTA Y UNA LISTA DE UN ELEMENTO HEX, CON UNA LISTA
-% CUYOS ELEMENTOS SON AQUELLOS DE LA PRIMERA LISTA CUYO VALOR
+% UNIFICA UNA LISTA Y UNA LISTA UNITARIA CON UN STRING DENTRO, CON UNA
+% LISTA CUYOS ELEMENTOS SON AQUELLOS DE LA PRIMERA LISTA CUYO VALOR
 % COINCIDA CON EL VALOR INICIAL ENTREGADO.
 %
-%COMPRESSHEXBLIST_CLEAR
-% EVALUA, SEGUN PREDICADO RECCOMPRESSHEXLIST_CLEAR, TRES LISTAS.
+%COMPRESSHEXLIST_CLEAR
+% EVALUA, SEGUN PREDICADO RECCOMPRESSBINLIST_CLEAR, TRES LISTAS.
 %
 % DOMINIO: RECCOMPRESS_CLEAR: LISTA X LISTA X LISTA
 %          COMPRESS_CLEAR: LISTA X LISTA X LISTA
 % RECURSION: PILA
 
 recCompressHEXList_clear([],[],_).
-recCompressHEXList_clear([H|T],T2,[HEX]):-  select_pixhex_hex(H,HEX),recCompressHEXList_clear(T,T2,[HEX]).
+recCompressHEXList_clear([H|T],T2,[HEX]):-  select_pixhex_hex(H,HEX), recCompressHEXList_clear(T,T2,[HEX]).
 recCompressHEXList_clear([H|T],[H|T2],Color_in):- recCompressHEXList_clear(T,T2,Color_in).
 
 compressHEXList_clear(List_in,Color_in,List_out):- recCompressHEXList_clear(List_in,List_out,Color_in).
 
 %COMPRESSHEXMAP
-% DADA UN TDA:IMAGE INICIAL, DETERMINA EL VALOR HEX MAS FRECUENTE EN
+% DADA UN TDA:IMAGE INICIAL, DETERMINA EL STRING MAS FRECUENTE EN
 % ESTA. LUEGO CREA UNA LISTA CON AQUELLOS TDA:PIXHEX CUYO VALOR COINCIDA
 % CON EL MAS FRECUENTE. FINALMENTE CREA UN TDA:IMAGE CUYO ULTIMA COLA
 % CORRESPONDA A LA LISTA CREADA CON LA ULTIMA COLA DEL TDA:IMAGE
-% INICIAL, AL IGUAL QUE ELIMINANDO DICHOS TDA:PIXHEX DEL CONTENIDO DE
-% LA TDA:IMAGE INICIAL.
+% INICIAL, AL IGUAL QUE ELIMINANDO DICHOS TDA:PIXHEX DEL CONTENIDO DE LA
+% TDA:IMAGE INICIAL.
 %
 % DOMINIO: TDA:IMAGE X TDA:IMAGE(COMPRESSED)
 
-compressHexmap(Image_in,Compressed_Image_out):- imageToHistogram(Image_in,Histo_out),mostFrequentHEXHisto(Histo_out,[R,G,B]), rgbStringToHex(R,G,B,HEX_color), select_pix_content(Image_in,Content_out), compressHEXList_newList(Content_out,[HEX_color],New_content), compressHEXList_clear(Content_out,[HEX_color],Clear_content), createCompressedImage(Image_in,[[HEX_color]|New_content],Clear_content,Compressed_Image_out).
+compressHexmap(Image_in,Compressed_Image_out):- imageToHistogram(Image_in,Histo_out), mostFrequentHEXHisto(Histo_out,Color_out), select_pix_content(Image_in,Content_out), compressHEXList_newList(Content_out,Color_out,New_content), compressHEXList_clear(Content_out,Color_out,Clear_content), createCompressedImage(Image_in,[Color_out|New_content],Clear_content,Compressed_Image_out).
 
 %COMPRESS
 % DETERMINA EL TIPO DE TDA:IMAGE QUE SE LE ENTREGO, Y LUEGO APLICA EL
