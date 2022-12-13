@@ -593,8 +593,12 @@ compressPixmap(Image_in,Compressed_Image_out):- imageToHistogram(Image_in,Histo_
 %          MOSTFREQUENTHEXHISTO: LISTA X LISTA
 % RECURSION: PILA
 
+recMostFrequentHEXHisto([[H,A]|[]],[_,_,_,A2],[H]):- A > A2.
+recMostFrequentHEXHisto([[_,A]|[]],[H,A2],[H]):- A =< A2.
+recMostFrequentHEXHisto([[H,A]|T],[_,A2],Color_out):- A > A2, recMostFrequentRGBHisto(T,[H,A],Color_out).
+recMostFrequentHEXHisto([[_,A]|T],[H,A2],Color_out):- A =< A2, recMostFrequentRGBHisto(T,[H,A2],Color_out).
 
-mostFrequentHEXHisto(List_in,Color_out):- recMostFrequentRGBHisto(List_in,[_,_,_,0],Color_out).
+mostFrequentHEXHisto(List_in,Color_out):- recMostFrequentHEXHisto(List_in,[_,0],Color_out).
 
 %RECCOMPRESSHEXLIST_NEWLIST
 % UNIFICA UNA LISTA Y UNA LISTA DE UN ELEMENTO, CON UNA LISTA

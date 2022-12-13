@@ -1,22 +1,12 @@
 :- module('TDA-hexString',
-           [myLengthR/3,
-            myLength/2,
-            myStringLength/2,
-            hex/1,
-            isHexR/1,
-            isHex/1,
-            isRGBHex/1,
-            hexToInteger/2,
-            hexChToDec/2,
-            hexStringTo/2,
-            decToHexStr/2,
-            rgbStringToHex/4]).
+           [myLengthR/3,myLength/2,myStringLength/2,hex/1,isHexR/1,isHex/1,isRGBHex/1,hexToInteger/2,hexChToDec/2,hexStringTo/2,
+           decToHexStr/2,rgbStringToHex/4]).
 
 %MYLENGTH
 % DETERMINA EL LARGO DE UNA LISTA.
 % DOMINIO(MYLENGTHR): LISTA X ENTERO X ENTERO.
 %        (MYLENGTH):  LISTA X ENTERO
-% RECURSIÓN DE COLA.
+% RECURSION DE COLA.
 
 myLengthR([],L,L).
 myLengthR([_|T],L,L_out):- L_up is L+1, myLengthR(T,L_up,L_out).
